@@ -3,11 +3,11 @@
 SCRIPTNAME="$0"
 VERSION="0.0.1"
 
-. ./utils/base.sh
-. ./utils/logging.sh
-. ./utils/config.sh
-. ./utils/api.sh
-. ./utils/dns.sh
+. ./util/base.sh
+. ./util/logging.sh
+. ./util/config.sh
+. ./util/api.sh
+. ./util/dns.sh
 
 REQUIRES_FUNCS debug info warn error log_start config_load_all config_validate repeated merge_arrays
 

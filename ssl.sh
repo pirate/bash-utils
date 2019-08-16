@@ -3,10 +3,10 @@
 SCRIPTNAME="$0"
 VERSION="0.0.1"
 
-. ./utils/base.sh
-. ./utils/logging.sh
-. ./utils/config.sh
-. ./utils/dns.sh
+. ./util/base.sh
+. ./util/logging.sh
+. ./util/config.sh
+. ./util/dns.sh
 
 REQUIRES_FUNCS dns_lookup get_public_ip config_load_all config_validate repeated timed
 
