@@ -175,9 +175,9 @@ function get_record {
 
 
     if [[ "$API" == "do" ]]; then
-        . ./utils/digitalocean.sh
+        . ./lib/digitalocean.sh
     elif [[ "$API" == "cf" ]]; then
-        . ./utils/cloudflare.sh
+        . ./lib/cloudflare.sh
     fi
 
     dns_get_record "$DOMAIN" "$TYPE"
@@ -191,9 +191,9 @@ function update_record {
     [[ "$VALUE" == "pubip" ]] && VALUE="$(get_public_ip)"             # replace pubip with actual ip
 
     if [[ "$API" == "do" ]]; then
-        . ./utils/digitalocean.sh
+        . ./lib/digitalocean.sh
     elif [[ "$API" == "cf" ]]; then
-        . ./utils/cloudflare.sh
+        . ./lib/cloudflare.sh
     fi
 
     VALUE_BEFORE="$(
