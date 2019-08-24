@@ -2,7 +2,7 @@
 
 
 REQUIRES_FUNCS debug error
-REQUIRES_CMDS dig curl replace grep
+REQUIRES_CMDS dig curl grep sed
 
 
 ### Global Variables
@@ -24,8 +24,8 @@ function get_rootdomain {                   # www.sub.example.dev -> example.dev
 }
 function get_subdomain {                    # www.sub.example.dev -> www.sub
     local DOMAIN="$1"
-
-    echo "$DOMAIN" | replace ".$(get_rootdomain "$DOMAIN")" ''
+    local root=
+    echo "$DOMAIN" | sed "s/\.$(get_rootdomain "$DOMAIN")//g"
 }
 
 function dns_lookup {                       # abc.example.com -> 123.123.123.123
