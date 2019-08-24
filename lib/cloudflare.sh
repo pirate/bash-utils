@@ -58,7 +58,7 @@ function dns_create_record {
 
     URL="$CF_API_URL/zones"
     JSON_PATH=".result[] | select(.name == \"$ROOTDOMAIN\") | .id"
-    ZONE_ID="$(json_api GET "$URL" "${CONFIG[CF_API_KEY]}" "$JSON_PATH")" || return $?
+    ZONE_ID="$(json_api GET "$URL" "$JSON_PATH" "${CONFIG[CF_API_KEY]}")" || return $?
     
     URL="$CF_API_URL/zones/$ZONE_ID/dns_records"
     JSON_PATH='.result.content'
