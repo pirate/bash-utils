@@ -79,6 +79,8 @@ function dns_set_record {
 
     local URL JSON_PATH DATA
 
+    ROOTDOMAIN="$(get_rootdomain "$DOMAIN")"
+
     [[ "$TTL" == "default" ]] && TTL="$CF_DEFAULT_TTL"                # default ttl is 1
     [[ "$VALUE" == "$ROOTDOMAIN" ]] && VALUE="@"                      # replace root ref with @
     [[ "$TYPE" == "CNAME" && "$VALUE" != "@" ]] && VALUE="${VALUE}."  # append . to CNAME records
@@ -93,6 +95,6 @@ function dns_set_record {
         "proxied": '$PROXIED'
     }'
 
-    json_api PUT "$CF_API_URL$URL" "$JSON_PATH" "${CONFIG[CF_API_KEY]}" "$DATA" || return $?
+    json_api PUT "$URL" "$JSON_PATH" "${CONFIG[CF_API_KEY]}" "$DATA" || return $?
     return 0
 }

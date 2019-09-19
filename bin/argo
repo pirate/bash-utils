@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# usage:
-#    ./bin/argo cloud.monadical.com http://127.0.0.1:9089
 
-BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+SCRIPTNAME="$0"
+VERSION="0.0.1"
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
 DOMAIN="$1"                                         # e.g. "cloud.monadical.com"
 URL="$2"                                            # e.g. "https://127.0.0.1:9089"
@@ -13,8 +13,8 @@ REFRESH=1;                                            # e.g. 1 second between ch
 TIMEOUT=60;                                           # e.g. 5 seconds before a check is considered failing
 ROOTDOMAIN=$(echo "$DOMAIN" | sed -r 's/.*\.([^.]+\.[^.]+)$/\1/')  # e.g. monadical.com
 
-PID_FILE="$BASE_DIR/data/tmp/cloudflared.$DOMAIN.pid"
-CERT_FILE="$BASE_DIR/data/certs/$ROOTDOMAIN.pem"
+PID_FILE="$SCRIPTS_DIR/data/tmp/cloudflared.$DOMAIN.pid"
+CERT_FILE="$SCRIPTS_DIR/data/certs/$ROOTDOMAIN.pem"
 
 function log() {
     echo -e "$(date +"%Y-%m-%d %H:%M:%S") $*" > /dev/stderr
@@ -43,12 +43,12 @@ fi
 
 log "[+] Setting up Cloudflare Argo tunnel $DOMAIN->$SCHEME://$HOST:$PORT..."
 
-if [ ! -d "$BASE_DIR/data" ]; then
-    log "[X] No argo config dir exists at $BASE_DIR (is this script placed the right folder?)."
+if [ ! -d "$SCRIPTS_DIR/data" ]; then
+    log "[X] No argo config dir exists at $SCRIPTS_DIR (is this script placed the right folder?)."
     exit 2
 fi
 
-mkdir -p "$BASE_DIR/data/tmp"
+mkdir -p "$SCRIPTS_DIR/data/tmp"
 if [ ! -f "$CERT_FILE" ]; then
     log "[X] Missing certificate at '$CERT_FILE'.\nTo generate it, run:\n    cloudflared tunnel login && cp ~/.cloudflared/cert.pem '$CERT_FILE'\n    or get it from https://dash.cloudflare.com/argotunnel"
     exit 2
@@ -74,7 +74,7 @@ if ((WAITED!=0)); then
 fi
 
 log "[*] Starting cloudflared process..."
-exec "$BASE_DIR/bin/cloudflared" \
+exec "$SCRIPTS_DIR/bin/cloudflared" \
     tunnel \
     --url "$URL" \
     --hostname "$DOMAIN" \

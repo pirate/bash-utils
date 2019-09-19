@@ -2,13 +2,17 @@
 
 SCRIPTNAME="$0"
 VERSION="0.0.1"
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
-. ./util/base.sh
-. ./util/logging.sh
-. ./util/config.sh
-. ./util/dns.sh
+source "$SCRIPTS_DIR/util/base.sh"
+source "$SCRIPTS_DIR/util/logging.sh"
+source "$SCRIPTS_DIR/util/config.sh"
+source "$SCRIPTS_DIR/util/dns.sh"
 
-REQUIRES_FUNCS dns_lookup get_public_ip config_load_all config_validate repeated timed
+REQUIRES_FUNCS \
+    config_load_all config_validate \
+    repeated timed \
+    dns_lookup get_public_ip
 
 
 # shellcheck disable=SC2034
@@ -18,17 +22,19 @@ HELP_TEXT="
     Helper script to generate SSL certificates.
 
 Usage:
-    $SCRIPTNAME --domain=example.com --method=[mkcert|openssl|letsencryt] [--letsencrypt-method=standalone|webroot|cloudflare|digitalocean|manual]
+    $SCRIPTNAME --domain=example.com --out-dir=./data/certs --method=[mkcert|openssl|standalone|nginx|webroot|cloudflare|digitalocean|manual]
 
 Examples:
-    $SCRIPTNAME example.l
-    $SCRIPTNAME example.l mkcert
-    $SCRIPTNAME example.com openssl
-    $SCRIPTNAME example.com letsencrypt
-    $SCRIPTNAME example.com letsencrypt digitalocean
+    $SCRIPTNAME --domain=example.l --out-dir=/opt/example.project/data/certs
+    $SCRIPTNAME --domain=example.l --method=mkcert
+    $SCRIPTNAME --domain=example.com --method=openssl
+    $SCRIPTNAME --domain=example.com --method=letsencrypt
+    $SCRIPTNAME --domain=example.com --method=digitalocean
 "
 
 ### Config
+
+API_KEY_PLACEHOLDER="set-this-value-in-your-config-file"
 
 # shellcheck disable=SC2034
 declare -A SSL_CLI_ARGS=(

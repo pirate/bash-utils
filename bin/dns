@@ -2,14 +2,18 @@
 
 SCRIPTNAME="$0"
 VERSION="0.0.1"
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 
-. ./util/base.sh
-. ./util/logging.sh
-. ./util/config.sh
-. ./util/api.sh
-. ./util/dns.sh
+source "$SCRIPTS_DIR/util/base.sh"
+source "$SCRIPTS_DIR/util/logging.sh"
+source "$SCRIPTS_DIR/util/config.sh"
+source "$SCRIPTS_DIR/util/api.sh"
+source "$SCRIPTS_DIR/util/dns.sh"
 
-REQUIRES_FUNCS debug info warn error log_start config_load_all config_validate repeated merge_arrays
+REQUIRES_FUNCS \
+    debug info warn error log_start \
+    config_load_all config_validate \
+    merge_arrays repeated
 
 # shellcheck disable=SC2034
 HELP_TEXT="
@@ -186,7 +190,7 @@ function get_record {
 function update_record {
     local API="$1" DOMAIN="$2" TYPE="$3" VALUE="$4" TTL="$5" PROXIED="$6"
 
-    local VALUE_BEFORE VALUE_AFTER
+    local VALUE_BEFORE VALUE_AFTER STATUS
 
     [[ "$VALUE" == "pubip" ]] && VALUE="$(get_public_ip)"             # replace pubip with actual ip
 
@@ -197,15 +201,16 @@ function update_record {
     fi
 
     VALUE_BEFORE="$(
-        "dns_get_record" \
-            "$DOMAIN" \
-            "$TYPE"
+        try --propagate=8 \
+            dns_get_record \
+                "$DOMAIN" \
+                "$TYPE"
     )" && STATUS="$?" || STATUS="$?" 
 
     if [[ "$STATUS" == "8" ]]; then
         warn "$API/$DOMAIN/$TYPE=$VALUE creating new record..."
         VALUE_AFTER="$(
-            "dns_create_record" \
+            dns_create_record \
                 "$DOMAIN" \
                 "$TYPE" \
                 "$VALUE" \
@@ -213,7 +218,7 @@ function update_record {
                 "$PROXIED"
         )"
     elif ((STATUS>0)); then
-        return "$STATUS"
+        fatal --status=$STATUS "dns_get_record return an invalid exit status $STATUS"
     elif [[ "$VALUE_BEFORE" == "$VALUE" ]]; then
         info "$API/$DOMAIN/$TYPE=$VALUE_BEFORE is up-to-date."
         return 0
@@ -221,7 +226,7 @@ function update_record {
         info "$API/$DOMAIN/$TYPE=$VALUE_BEFORE updating to $VALUE..."
         
         VALUE_AFTER="$(
-            "dns_set_record" \
+            dns_set_record \
                 "$DOMAIN" \
                 "$TYPE" \
                 "$VALUE" \
@@ -231,7 +236,7 @@ function update_record {
     fi
     
     if ! [[ "$VALUE_AFTER" == "$VALUE" || "$VALUE_AFTER" == "${VALUE}." ]]; then
-        error "$API/$DOMAIN/$TYPE=$VALUE update failed (got $VALUE_AFTER)."
+        error "$API/$DOMAIN/$TYPE=$VALUE update failed (got ${VALUE_AFTER:-API error})."
         return 1
     else
         info "$API/$DOMAIN/$TYPE=$VALUE update succeeded."
@@ -266,6 +271,7 @@ function runloop {
                     "$API" \
                     "${CONFIG[DOMAIN]}" \
                     "${CONFIG[TYPE]}"
+            return $?
         elif [[ "$SET" ]]; then
             timed "${CONFIG[TIMEOUT]}" \
                 update_record \
@@ -275,6 +281,7 @@ function runloop {
                     "${CONFIG[SET]}" \
                     "${CONFIG[TTL]}" \
                     "${CONFIG[PROXIED]}"
+            return $?
         else
             fatal 'You must pass either --get or --set=value'
         fi
@@ -288,7 +295,18 @@ function main {
     config_validate CONFIG_VALIDATORS
     log_start_dns
 
-    repeated "${CONFIG[INTERVAL]}" runloop || return $?
+    repeated "${CONFIG[INTERVAL]}" runloop
 }
 
-main "$@"
+main "$@" &
+wait "$!" && STATUS=$? || STATUS=$?
+jobs -p
+jobs -p | xargs 'kill -9 --'
+
+if ((STATUS>125)); then
+    # codes >= 125 are used by the shell only and cannot be returned from scripts
+    # https://www.tldp.org/LDP/abs/html/exitcodes.html
+    exit $((STATUS-100))
+else
+    exit $STATUS
+fi

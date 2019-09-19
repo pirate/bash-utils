@@ -1,7 +1,6 @@
 #!/usr/bin/env/bash
 
 REQUIRES_CMDS sed
-REQUIRES_FUNCS trace_top_caller
 
 
 ### Global Variables
@@ -29,8 +28,7 @@ function log_start {
 function log_quit {
     local SIGNAL="$1" SOURCE="${2:-$SCRIPTNAME}"
     wait
-    fatal "Stopped. ($SIGNAL in $SOURCE)"
-    exit "$SIGNAL"
+    fatal --trace-depth="0" --status="$SIGNAL" "$SOURCE $SIGNAL"
 }
 
 function log {
@@ -97,7 +95,43 @@ function error {
     log ERROR "$*"
 }
 function fatal {
-    log FATAL "$*\n$(backtrace)"
-    # debug "TRACEBACK:\n "
-    exit 3
+    local STATUS=$? BACKTRACE_DEPTH=1 MSG=""
+
+    while (( "$#" )); do
+        case "$1" in
+            --status|--status=*)
+                if [[ "$1" == *'='* ]]; then
+                    STATUS=${1#*=}
+                else
+                    shift
+                    STATUS=$1
+                fi
+                shift
+            ;;
+            --trace-depth|--trace-depth=*)
+                if [[ "$1" == *'='* ]]; then
+                    BACKTRACE_DEPTH=${1#*=}
+                else
+                    shift
+                    BACKTRACE_DEPTH=$1
+                fi
+                shift
+            ;;
+            *)
+                MSG="$MSG$1 "
+                shift
+            ;;
+        esac
+    done
+
+    log FATAL "$MSG\n$(backtrace $BACKTRACE_DEPTH)"
+
+    # e.g. if STATUS is a named signal like SIGSEV instead of a number
+    [ ! -z "${STATUS##*[!0-9]*}" ] || STATUS=3
+
+    # kill all child processes in current subshell
+    jobs -p | xargs 'kill -9 --'
+
+    exit $STATUS
 }
+

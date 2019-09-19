@@ -3,6 +3,7 @@
 
 ### Bash Environment Setup
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
+# https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 # set -o xtrace
 set -o errexit
 set -o errtrace
@@ -10,13 +11,15 @@ set -o nounset
 set -o pipefail
 IFS=$'\n'
 trap 'log_quit SIGINT' SIGINT
+# trap 'log_quit SIGABRT' SIGABRT
+trap 'log_quit SIGPIPE' SIGPIPE
 trap 'log_quit SIGQUIT' SIGQUIT
 trap 'log_quit SIGTSTP' SIGTSTP
 trap 'log_quit TIMEOUT' SIGALRM
-trap 'log_quit ERROR ${FUNCNAME} on line ${LINENO} in $SCRIPTNAME' ERR
+trap 'log_quit $? "${BASH_SOURCE//$PWD/.}:${LINENO} ${FUNCNAME:-}($(IFS=" "; echo "$*"))"' ERR
 
- BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
-
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
+ROOT_PID=$$
 
 ### General Helpers
 
@@ -59,23 +62,25 @@ function timed {
         
         # 2. Start timeout watcher in background process, save pid to WPID
         (       
-            sleep "$TIMEOUT" || exit
+            sleep "$TIMEOUT" || exit 0
             warn "Reached ${TIMEOUT}s timeout, aborting and retrying..."
-            kill $CPID 2> /dev/null
+            kill $CPID 2> /dev/null || true
         ) & WPID=$!
 
         debug "[timed][1/2] Timer started shell=$SPID watcher=$WPID pid=$CPID timeout=${TIMEOUT}s cmd=${CMD[0]}"
         
         # 3. Wait for either command process to finish, or watcher to fire and kill CPID
         wait $CPID && STATUS=$? || STATUS=$?
-        kill $WPID
+        kill $WPID 2>/dev/null || true
         
         # 4. Log total time spent and return original exit status of command subprocess
         END_TS="$(date +"%s")"
         TOOK=$((END_TS-START_TS))
         debug "[timed][2/2] Timer finished shell=$SPID watcher=$WPID pid=$CPID exit=${STATUS} took=${TOOK}s cmd=${CMD[0]}"
         return $STATUS
-    ) && return $? || return $?
+    ) &
+    wait "$!" && STATUS=$? || STATUS=$?
+    return $STATUS
 }
 
 # Loop a command with the given TIMEOUT and the given INTERVAL between runs
@@ -85,15 +90,65 @@ function repeated {
     local -a CMD=("$@")
 
     while :; do
-        eval "${CMD[@]}" && STATUS=$? || STATUS=$?
+        eval "${CMD[@]}" &
+        wait "$!" && STATUS=$? || STATUS=$?
 
-        ((INTERVAL<1)) && return $STATUS
-        sleep "$INTERVAL"
+        if ((INTERVAL<1)); then
+            return $STATUS
+        else
+            sleep "$INTERVAL"
+        fi
     done
 }
 
-function backtrace () {
-    local depth=${#FUNCNAME[@]}
+function try {
+    local -a CMD
+    local -a PROPAGATE
+    local -a SILENCE
+
+    while (( "$#" )); do
+        case "$1" in
+            --propagate|--propagate=*)
+                if [[ "$1" == *'='* ]]; then
+                    PROPAGATE+=("${1#*=}")
+                else
+                    shift
+                    PROPAGATE+=("$1")
+                fi
+                shift
+            ;;
+            --ignore|--ignore=*)
+                if [[ "$1" == *'='* ]]; then
+                    IGNORE+=("${1#*=}")
+                else
+                    shift
+                    IGNORE+=("$1")
+                fi
+                shift
+            ;;
+            *)
+                CMD+=("$1")
+                shift
+            ;;
+        esac
+    done
+
+    eval "${CMD[@]}" & wait "$!" && return 0 || STATUS=$?
+
+
+    if printf '%s\n' ${SILENCE[@]} | grep -q -E "^$STATUS\$"; then
+        return 0
+    fi
+
+    if printf '%s\n' ${PROPAGATE[@]} | grep -q -E "^$STATUS\$"; then
+        return "$STATUS"
+    fi
+
+    fatal --status=$STATUS "Got unexpected exit status $STATUS: ${CMD[@]}"
+}
+
+function backtrace {
+    local depth=${1:-#FUNCNAME[@]}
 
     for ((i=2; i<depth; i++)); do
         local func="${FUNCNAME[$i]}"
@@ -104,7 +159,7 @@ function backtrace () {
     done
 }
 
-function trace_top_caller () {
+function trace_top_caller {
     local func="${FUNCNAME[1]}"
     local line="${BASH_LINENO[0]}"
     local src="${BASH_SOURCE[0]}"
@@ -112,10 +167,36 @@ function trace_top_caller () {
 }
 
 # Check to make sure the given functions are loaded
+function IMPORT {
+    local -a IMPORTS=("$@")
+    local FUNC
+    local PATH
+
+
+    for PATH in ${IMPORTS[*]}; do
+        IFS='.'
+        for step in $PATH; do
+            if [[ -d "$step" ]]; then
+                cd "$step"
+            elif [[ -f "$step" ]]; then
+                source "$step"
+                break
+            fi
+        done
+        FUNC="${PATH[-1]}"
+        IFS=$'\n'
+
+        if [[ "$(type -t "$FUNC")" != "function" ]]; then
+            echo "[X] Missing required function $FUNC (is the import path $PATH correct?)" >&2
+            exit 4
+        fi
+    done
+}
+
 function REQUIRES_FUNCS {
     for FUNC in "$@"; do
         if [[ "$(type -t "$FUNC")" != "function" ]]; then
-            echo "[X] Missing required function $FUNC (did you import all the required files in the right order?)" >&2
+            echo "[X] Missing required function $FUNC (is the import path $PATH correct?)" >&2
             exit 4
         fi
     done
