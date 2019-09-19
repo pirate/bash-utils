@@ -61,22 +61,17 @@ function timed {
         eval "${CMD[@]}" & CPID=$!
         
         # 2. Start timeout watcher in background process, save pid to WPID
-        set +o errexit
-        set +o errtrace
         (       
-            set +o errexit
             sleep "$TIMEOUT" || exit 0
             warn "Reached ${TIMEOUT}s timeout, aborting and retrying..."
             kill $CPID 2> /dev/null || true
         ) & WPID=$!
-        set -o errexit
-        set -o errtrace
 
         debug "[timed][1/2] Timer started shell=$SPID watcher=$WPID pid=$CPID timeout=${TIMEOUT}s cmd=${CMD[0]}"
         
         # 3. Wait for either command process to finish, or watcher to fire and kill CPID
         wait $CPID && STATUS=$? || STATUS=$?
-        kill $WPID 2>/dev/null || true
+        kill -PIPE $WPID 2>/dev/null || true
         
         # 4. Log total time spent and return original exit status of command subprocess
         END_TS="$(date +"%s")"
