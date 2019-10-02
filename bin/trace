@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+#
+# Parse strace output to find HTTP requests & responses
+#
+# Usage:
+#    ./strace.py --help
+#    ./strace.py -p 22607
+#    ./strace.py -p 22607 -f '/api/v1/messages'
+#    ./strace.py -p 22607 -s 'recvfrom,sendto,write' -f ''
+
+import sys
+import shutil
+import argparse
+import subprocess
+
+from datetime import datetime
+from codecs import decode
+
+
+### Config Defaults
+
+# e.g. 'network,read,write,poll,connect,select,recvfrom,sendto' etc.
+SYSCALLS = 'recvfrom,sendto,writev'
+SYSCALL_FILTER = 'HTTP/'
+STRACE_MAX_CHARS = 9999
+
+### Globals
+
+IS_TTY = sys.stdout.isatty()
+TERM_WIDTH = shutil.get_terminal_size((160, 10)).columns
+SEPARATOR = '-' * TERM_WIDTH
+ANSI_COLOR  = '\033[{fg};{bg}m'
+RESET       = ANSI_COLOR.format(fg='00', bg='00')
+BLACK       = ANSI_COLOR.format(fg='01', bg='30')
+RED         = ANSI_COLOR.format(fg='01', bg='31')
+GREEN       = ANSI_COLOR.format(fg='01', bg='32')
+YELLOW      = ANSI_COLOR.format(fg='01', bg='33')
+BLUE        = ANSI_COLOR.format(fg='01', bg='34')
+PURPLE      = ANSI_COLOR.format(fg='01', bg='35')
+CYAN        = ANSI_COLOR.format(fg='01', bg='36')
+WHITE       = ANSI_COLOR.format(fg='01', bg='37')
+
+HTTP_METHODS = (
+    'GET', 'POST', 'PUT', 'DELETE', 'PATCH',
+    'HEAD', 'CONNECT', 'OPTIONS', 'TRACE',
+)
+
+
+### Helper Funcs
+
+def log_syscall(line: bytes):
+    # sendto(123, <content>, 65536, 0, NULL, NULL) = 908)
+    # recvfrom(19, <content>, 65536, 0, NULL, NULL) = 908
+
+    print(SEPARATOR)
+
+    line_str = line.decode('utf-8')
+    syscall_start = line_str.split('"', 1)[0].strip()
+    syscall_end = line_str.rsplit('"', 1)[-1].strip()
+    syscall_arg = line.split(b'"', 1)[-1].rsplit(b'"', 1)[0].strip()
+    arg_summary = syscall_arg[:TERM_WIDTH-40].decode('utf-8').strip()
+    
+    decor_len = len(f'[{datetime.now()}] {syscall_start} ""{syscall_end}')
+
+    if len(arg_summary) + decor_len > TERM_WIDTH:
+        arg_summary = arg_summary[:TERM_WIDTH - decor_len - 3] + '...'
+
+    if '(' not in line_str.split(', ', 1)[0]:
+        print(f'[{PURPLE}{datetime.now()}{RESET}] {YELLOW}{line_str}{RESET}')
+        print()
+
+    elif 'HTTP/' in line_str.split('\r\n')[0]:
+        print(f'[{PURPLE}{datetime.now()}{RESET}] {GREEN}{syscall_start} "{arg_summary}"{syscall_end}{RESET}')
+        print()
+        log_request(syscall_arg)
+    else:
+        print(f'[{PURPLE}{datetime.now()}{RESET}] {YELLOW}{syscall_start} "{arg_summary}"{syscall_end}{RESET}')
+        print()
+        print(syscall_arg[:256].decode('utf-8'))
+    
+    print()
+
+    
+
+def log_request(content: bytes):
+    if content.startswith(b'\\'):
+        # print nginx uwsgi_pass and proxy_pass recvfrom iovecs more legibly
+        print(content.decode('utf-8').replace('\\0', '\n').strip())
+        return
+
+    lines = decode(content, 'unicode-escape').split('\r\n')
+    try:
+        url_or_status = lines[0]
+
+        # if request contains a CRLF indicating body content is present after headers
+        if '' in lines:
+            headers, body = lines[1:lines.index('')], lines[lines.index(''):]
+        else:
+            headers, body = lines[1:], []
+
+        log_url(url_or_status)
+        log_headers(headers)
+        log_body(body)
+    except Exception:
+        print(f'{RED}{content}{RESET}')
+        raise
+    
+
+def log_url(line: str):
+    if line.split(' ', 1)[0] in HTTP_METHODS:
+        method, url, version = line.split(' ', 2)
+        print(f'{GREEN}{method} {YELLOW}{url} {CYAN}{version}{RESET}')
+    elif line.split('/', 1)[0] == 'HTTP':
+        version, statuscode, status = line.split(' ', 2)
+        print(f'{CYAN}{version} {GREEN}{statuscode} {YELLOW}{status}{RESET}')
+    else:
+        print(f'{YELLOW}{line}{RESET}')
+
+
+def log_headers(lines: list):
+    for line in lines:
+        key, value = line.split(': ', 1)
+        print(f'{BLUE}{key}{CYAN}: {BLACK}{value}{RESET}')
+
+def log_body(lines: list):
+    for line in lines:
+        print(line)
+
+def log_proctree(pids: str):
+    for pid in pids.split(','):
+        CMD = ['pstree', '-U', '-a', '-p', '-s', '-t', '-h', str(pid)]
+        proc = subprocess.Popen(
+            CMD,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        for line in proc.stdout:
+            line = line.decode('utf-8').rstrip()
+            if line.endswith(f',{pid}') or f',{pid} ' in line:
+                print(f'{GREEN}    {line}{RESET}')
+            else:
+                print(f'{BLACK}    {line}{RESET}')
+
+
+### Main Funcs
+
+def strace(pid: str, syscalls: str=SYSCALLS, filter: str=SYSCALL_FILTER, straceargs: str=''):
+    CMD = [
+        'strace', '-v', '-f',
+        '-s', str(STRACE_MAX_CHARS),
+        '-e', f'trace={syscalls}',
+        '-p', pid,
+        *(straceargs.split(' ') if straceargs.strip() else ()),
+    ]
+
+    print(SEPARATOR)
+    if filter:
+        filter_status = f'filtering for "{filter}"'
+    else:
+        filter_status = f'unfiltered'
+    print(f'{GREEN}[+] Starting {" ".join(CMD)} ({filter_status})...{RESET}')
+    log_proctree(pid)
+    print()
+
+    return subprocess.Popen(
+        CMD,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+def find_pids(cmd: str) -> str:
+    CMD = ['pidof', cmd]
+    proc = subprocess.Popen(
+        CMD,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+    pids = proc.stdout.read().decode('utf-8').strip().split(' ')
+    if not pids:
+        print(f'{RED}[X] No PIDs found matching process name "{cmd}".{RESET}')
+        raise SystemExit(1)
+    return ','.join(pids)
+
+
+def main(pid: str=None, cmd: str=None, syscalls: str=SYSCALLS, filter: str=SYSCALL_FILTER, straceargs: str=''):
+    assert (cmd or pid) and not (cmd and pid), 'You must provide either --proc=CMD or --pid=PID'
+
+    if cmd:
+        pid = find_pids(cmd)
+
+    proc = strace(str(pid), syscalls=syscalls, filter=filter, straceargs=straceargs)
+    try:
+        for line in proc.stdout:
+            if filter.encode('utf-8') not in line:
+                continue
+
+            log_syscall(line)
+
+    except (KeyboardInterrupt, SystemExit) as e:
+        print()
+        print(SEPARATOR)
+        print(f'{GREEN}[√] Stopped strace of pid={CYAN}{pid}{GREEN} ({e.__class__.__name__}).{RESET}')
+        print()
+        pass
+    except Exception as e:
+        print(SEPARATOR)
+        print(f'{RED}[X] Stopped strace of pid={CYAN}{pid}{RED} {e.__class__.__name__}: {e}{RESET}.')
+        raise
+    finally:
+        proc.kill()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Trace a running process and log any HTTP requests performed')
+
+    parser.add_argument('--pid', '-p', action="store", type=int, default=None, help=f'PID(s) of process to trace (e.g. -p=66703,1234)')
+    parser.add_argument('--cmd', '-c', action="store", type=str, default=None, help=f'Name of process to trace (e.g. -c=nginx)')
+    parser.add_argument('--syscalls', '-s', action="store", default=SYSCALLS, help=f'syscalls to listen for (e.g. -s={SYSCALLS})')
+    parser.add_argument('--filter', '-f', action="store", default=SYSCALL_FILTER, help=f'only show calls containing subsstring (e.g. -f="{SYSCALL_FILTER}")')
+    parser.add_argument('--straceargs', '-a', action="store", default="", help=f'pass additional args to strace (e.g. -a="-r -c")')
+    parser.add_argument('--color', action="store_true", default=IS_TTY, help=f'force CLI colors in request log output')
+
+    args = parser.parse_args()
+
+    main(pid=args.pid, cmd=args.cmd, syscalls=args.syscalls, filter=args.filter, straceargs=args.straceargs)
