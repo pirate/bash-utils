@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+### WIP
+
+raise NotImplementedError('This file is not usable yet (WIP)')
+
+# Utils to unlock 
+# pip3 install flask flask_wtf
+
+import os
+# import sys
+# import ctypes
+# import codecs
+import signal
+import subprocess
+
+from datetime import datetime
+from typing import Callable, Optional
+from contextlib import contextmanager
+
+
+
+class CONFIG:
+    FORGET_PASSPHRASE_AFTER = 60 * 60 * 24   # autodelete zpool passphrases in memory after 1 day max
+
+
+def start_timer(seconds: int, name: str=None, callback: Optional[Callable]=None):
+    start_ts = datetime.now()
+
+    def on_timeout(signum, frame): 
+        end_ts = datetime.now()
+        if callback is None:
+            raise TimeoutError
+        else:
+            callback(
+                start_ts=start_ts,
+                end_ts=end_ts,
+                signum=signum,
+                frame=frame,
+            )
+        
+
+    signal.signal(signal.SIGALRM, on_timeout)
+    signal.alarm(seconds)
+
+    return on_timeout
+
+def end_timer():
+    signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+@contextmanager
+def timeout(seconds, callback=None, name: str=None):        # usage: with timeout(1): ...
+    start_timer()
+    try:
+        yield
+    except TimeoutError:
+        pass
+    finally:
+        end_timer()
+
+# def forget_str(value: str):
+#     """zero a string out to forget it from python interned memory"""
+#     location = id(value) + 20
+#     size = sys.getsizeof(value) - 20
+    
+#     ctypes.memset(location, 0, size)
+#     # Alternatively:
+#     # memset =  ctypes.cdll.msvcrt.memset
+#     # memset =  ctypes.CDLL("libc.so.6").memset
+
+#     del value
+
+
+# class Secret:
+#     vault: bytes
+#     onetime: str
+#     timeout: int
+
+#     def __init__(self, value: str, timeout: int=CONFIG.FORGET_PASSPHRASE_AFTER):
+#         # don't rely on this for security, it's just barely obscured plaintext
+#         self.vault = codecs.encode(value, 'rot_13')
+#         if timeout > 0:
+#             def explode():
+#                 forget_str(self.vault)
+#                 self.vault = None
+            
+
+#     @property
+#     def plaintext(self):
+#         return codecs.decode(self.vault, 'rot_13')
+
+#     def forget(self):
+#         forget_str(self.vault)
+#         forget_str(self.vault)
+
+#     def __del__(self):
+#         forget_str(self.vault)
+#         forget_str(self.vault)
+#         self.vault = None
+#         return super().__del__()
+
+    
+# @contextmanager
+# def peek(secret, seconds) -> str:
+#     try:
+#         start_timer(seconds=timeout, name='Secret', callback=explode)
+#         yield secret.value
+#     finally:
+#         del secret.
+
+
+ZFS_COMMANDS = {
+    "list_snapshots": "zfs list -H -t snapshot | awk '{print $1} | grep '{pool}'",
+    "destroy_snapshot": ['zfs', 'destroy'],
+}
+
+# zfs get encryption tank/home/darren
+# NAME              PROPERTY    VALUE        SOURCE
+# tank/home/darren  encryption  on           local
+# zfs snapshot tank/home/darren@snap1
+# zfs get encryption bpool/snaps
+# zfs mount -o ro users/home/neil
+
+def RUN(*cmd):
+    return subprocess.run(cmd, capture_output=True)
+
+def BASH(cmd: str):
+    return subprocess.run(['/usr/bin/env', 'bash', '-c', cmd], capture_output=True)
+
+class ZFSDATASET:
+    @classmethod
+    def new(cls):
+        # zfs create -o encryption=on -o keysource=passphrase,file:///media/stick/passkey name
+        # zfs create -o encryption=on -o keysource=passphrase,prompt name
+        raise NotImplementedError
+
+    @classmethod
+    def load(name: str):
+        # zpool list -v name
+        raise NotImplementedError
+
+    def mount(self):
+        # zfs mount -o keysource=passphrase,file:///media/stick/passkey name
+
+
+class ZFSPOOL:
+
+    @classmethod
+    def new(name: str):
+        # zpool create -f \
+        #     -o mountpoint=/mnt/test \
+        #     -o compression=lz4 \
+        #     -o atime=off \
+        #     -o sync=standard \
+        #     -o aclinherit=passthrough \
+        #     -o utf8only=on \
+        #     -o normalization=formD \
+        #     -o casesensitivity=insensitive \
+        #     test mirror disk6 disk7
+        raise NotImplementedError
+
+    @classmethod
+    def load(name: str):
+        # zpool list -v name
+        raise NotImplementedError
+
+    def unlock(passphrase: str):
+
+
+
+def unlock_zpool(pool: str, secret_key: str):
+    subprocess.Popen(['zfs', 'unlock', secret_key], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+
+
+def server(bind: str='0.0.0.0:8787'):
+    import uuid
+    import subprocess
+
+    try:
+        from flask import Flask, render_template_string, request
+        from flask_wtf.csrf import CSRFProtect
+    except ImportError as e:
+        print(f'{e.__class__.__name__}: {e}')
+        print(
+            f'\nThe active python env {os.getenv("VIRTUALENV", "system")} '
+            f'is missing some dependencies:'
+            f'    python3 -m pip install flask flask_wtf'
+        )
+
+
+    app = Flask('ZFSUnlock')
+    app.config['SECRET_KEY'] = uuid.uuid4().hex
+    csrf = CSRFProtect(app)
+
+
+    FORM_HTML = """
+    <html>
+        <head>
+            <title>Syncroplicity Unlock</title>
+
+            <style>
+                body, h1, h4 {
+                    font-family: 'Gill Sans', Helvetica, sans-serif;
+                    font-weight: 200;
+                }
+                form * {
+                    font-size: 18px;
+                }
+                input, button {
+                    border-radius: 4px;
+                    border: 1px solid silver;
+                    box-shadow: 4px 4px 4px rgba(0,0,0,0.02);
+                    background-color: #fafafa;
+                    padding: 10px;
+                }
+            </style>
+        </head>
+        <body>
+            <center>
+                <br/><br/><br/>
+                <h1>Unlock the Encrypted Syncroplicity Database</h1>
+                <h4>(Use the master password created during initial setup)</h4>
+                <a href="https://monadical.com/about.html#contact">Contact Support</a> if you encounter any difficulty.
+                <br/><br/><br/>
+                <hr/>
+                <form action="/" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                    <input type="password" name="password" placeholder="Master password..."/>
+                    <button type="submit">Unlock Database</button>
+                </form>
+                <hr/>
+                <pre>{{messages}}</pre>
+                <hr/>
+            </center>
+        </body>
+    </html>
+    """
+
+
+    @app.route("/", methods=['GET', 'POST'])
+    def hello():
+        messages = b'(The master database password is a random, high-strength secret key used to encrypt all PHI for HIPAA compliance, it\'s not the same password as your Syncroplicity login credentials)'
+        if request.method == 'POST':
+            password = request.form['password']
+            proc = subprocess.Popen(['zfs', 'unlock', password], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            messages = b'\n'.join(proc.stdout) + b'\n---------------------\n' + b'\n'.join(proc.stderr)
+
+        return render_template_string(FORM_HTML, messages=messages.decode('utf-8'))
+
+    app.run()
