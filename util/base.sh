@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Utils used by cloudflare and digitalocean
+# Basic utils and setup used by all the other scripts
 
 ### Bash Environment Setup
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
