@@ -4,18 +4,20 @@
 ### Bash Environment Setup
 # http://redsymbol.net/articles/unofficial-bash-strict-mode/
 # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
-# set -o xtrace
-set -o errexit
-set -o errtrace
-set -o nounset
-set -o pipefail
-IFS=$'\n'
+# set -o xtrace                 # print every command before executing (for debugging)
+set -o nounset                  # make using undefined variables throw an error
+set -o errexit                  # exit immediately if any command returns non-0
+set -o pipefail                 # exit from pipe if any command within fails
+set -o errtrace                 # subshells should inherit error handlers/traps
+shopt -s dotglob                # make * globs also match .hidden files
+shopt -s inherit_errexit        # make subshells inherit errexit behavior
+IFS=$'\n'                       # set array separator to newline to avoid word splitting bugs
 trap 'log_quit SIGINT' SIGINT
-# trap 'log_quit SIGABRT' SIGABRT
 trap 'log_quit SIGPIPE' SIGPIPE
 trap 'log_quit SIGQUIT' SIGQUIT
 trap 'log_quit SIGTSTP' SIGTSTP
 trap 'log_quit TIMEOUT' SIGALRM
+# trap 'log_quit SIGABRT' SIGABRT
 trap 'log_quit $? "${BASH_SOURCE//$PWD/.}:${LINENO} ${FUNCNAME:-}($(IFS=" "; echo "$*"))"' ERR
 
 SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
