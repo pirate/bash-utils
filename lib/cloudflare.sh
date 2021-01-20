@@ -42,7 +42,6 @@ function dns_get_record {
 
     URL="$(dns_record_url "$DOMAIN" "$TYPE")" || return $?
     JSON_PATH='.result.content'
-
     json_api GET "$URL" "$JSON_PATH" "${CONFIG[CF_API_KEY]}" || return $?
     return 0
 }

@@ -205,7 +205,6 @@ function update_record {
     fi
 
     VALUE_BEFORE="$(
-        try --propagate=8 \
             dns_get_record \
                 "$DOMAIN" \
                 "$TYPE"
@@ -302,15 +301,15 @@ function main {
     repeated "${CONFIG[INTERVAL]}" runloop
 }
 
-main "$@" &
-wait "$!" && STATUS=$? || STATUS=$?
-jobs -p
-jobs -p | xargs 'kill -9 --'
+main "$@"
+#wait "$!" && STATUS=$? || STATUS=$?
+#jobs -p >/dev/null 2>&1
+#jobs -p | xargs 'kill -9 --' >/dev/null 2>&1
 
-if ((STATUS>125)); then
+#if ((STATUS>125)); then
     # codes >= 125 are used by the shell only and cannot be returned from scripts
     # https://www.tldp.org/LDP/abs/html/exitcodes.html
-    exit $((STATUS-100))
-else
-    exit $STATUS
-fi
+#    exit $((STATUS-100))
+#else
+#    exit $STATUS
+#fi
