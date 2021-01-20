@@ -223,7 +223,7 @@ function config_print {
 
 function pattern_matches_arg {
     local PATTERN="$1" ARG="$2"
-    eval "case \"$ARG\" in
+    eval "case '$ARG' in
         $PATTERN) return 0;;
         *)      return 1;;
     esac"

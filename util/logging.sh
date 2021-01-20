@@ -130,7 +130,7 @@ function fatal {
     [ ! -z "${STATUS##*[!0-9]*}" ] || STATUS=3
 
     # kill all child processes in current subshell
-    jobs -p | xargs 'kill -9 --'
+    jobs -p | xargs 'kill -9 --' 2>/dev/null
 
     exit $STATUS
 }

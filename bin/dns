@@ -194,6 +194,10 @@ function update_record {
 
     [[ "$VALUE" == "pubip" ]] && VALUE="$(get_public_ip)"             # replace pubip with actual ip
 
+    if [[ "$TYPE" == "TXT" ]]; then
+        VALUE="$(echo "$VALUE" | perl -pe 's/\n/\\\n/gm')"
+    fi
+
     if [[ "$API" == "do" ]]; then
         . ./lib/digitalocean.sh
     elif [[ "$API" == "cf" ]]; then

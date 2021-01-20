@@ -26,7 +26,7 @@ function dns_record_url {
     RECORD_ID="$(json_api GET "$URL" "$JSON_PATH" "${CONFIG[CF_API_KEY]}")" || return $?
 
     if [[ -z "$RECORD_ID" || "$RECORD_ID" == "null" || "$RECORD_ID" == "undefined" ]]; then
-        warn "API response from CloudFlare indicates no record exists for the given domain."
+        debug "API response from CloudFlare indicates no record exists for the given domain."
         echo "null"
         return 8
     fi
