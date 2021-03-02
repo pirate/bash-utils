@@ -30,6 +30,7 @@ A collection of hand-crafted bash scripts for various common tasks.
  - Auto-parse help text from comment at the top of script                 https://samizdat.dev/help-message-for-shell-scripts/
  - Make bash scripts safer by writing them in Rust                        https://github.com/rust-shell-script/rust_cmd_lib
  - Additional shell options for non-trivial bash scripts                  https://saveriomiroddi.github.io/Additional-shell-options-for-non-trivial-bash-shell-scripts/
+ - Bash unit testing framework                                            https://github.com/pgrange/bash_unit
 
 For my Fish shell functions, snippets, and reading list see here:  
 https://github.com/pirate/fish-functions
