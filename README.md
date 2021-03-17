@@ -34,3 +34,9 @@ A collection of hand-crafted bash scripts for various common tasks.
 
 For my Fish shell functions, snippets, and reading list see here:  
 https://github.com/pirate/fish-functions
+
+## Code Layout
+
+- `bin/` is a collection of finished scripts, for doing everything you need to do related to a specific task (e.g. `dns` can both set and fetch DNS values from a variety of providers)
+- `lib/` is a collection of adapters to interact with 3rd party tools or scripts, e.g. cloudflare/letsencrypt/etc
+- `util/` is a collection of pure bash functions to make development in bash easier e.g. logging/configuration/error handling/etc.
