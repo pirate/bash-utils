@@ -4,6 +4,7 @@ A collection of hand-crafted bash scripts for various common tasks.
 ## Reading List
 
  - ShellCheck: life-changing BASH linter and testing toolkit              https://github.com/koalaman/shellcheck
+ - How to do things safely in bash                                        https://github.com/anordal/shellharden/blob/master/how_to_do_things_safely_in_bash.md
  - 30 interesting commands for the Linux shell – Víctor López Ferrando    https://www.lopezferrando.com/30-interesting-shell-commands/
  - 7 Surprising Bash Variables                                            https://zwischenzugs.com/2019/05/11/seven-surprising-bash-variables/
  - anordal/shellharden                                                    https://github.com/anordal/shellharden/blob/master/how_to_do_things_safely_in_bash.md
