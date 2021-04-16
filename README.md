@@ -39,6 +39,7 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - Make bash scripts safer by writing them in Rust                        https://github.com/rust-shell-script/rust_cmd_lib
  - Additional shell options for non-trivial bash scripts                  https://saveriomiroddi.github.io/Additional-shell-options-for-non-trivial-bash-shell-scripts/
  - Bash unit testing framework                                            https://github.com/pgrange/bash_unit
+ - What exactly was the point of `[ “x$var” = “xval” ]`?                  https://www.vidarholen.net/contents/blog/?p=1035
 
 For my Fish shell functions, snippets, and reading list see here:  
 https://github.com/pirate/fish-functions
