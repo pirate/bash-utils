@@ -42,6 +42,9 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - What exactly was the point of `[ “x$var” = “xval” ]`?                  https://www.vidarholen.net/contents/blog/?p=1035
  - How to Write Indempotent Bash Scripts                                  https://arslan.io/2019/07/03/how-to-write-idempotent-bash-scripts/
  - Better Bash Scripting in 15 Minutes                                    http://robertmuth.blogspot.com/2012/08/better-bash-scripting-in-15-minutes.html
+ - Argbash: Argument parsing toolkit                                      https://github.com/matejak/argbash
 
 For my Fish shell functions, snippets, and reading list see here:  
 https://github.com/pirate/fish-functions
+
+If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
