@@ -43,6 +43,7 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - How to Write Indempotent Bash Scripts                                  https://arslan.io/2019/07/03/how-to-write-idempotent-bash-scripts/
  - Better Bash Scripting in 15 Minutes                                    http://robertmuth.blogspot.com/2012/08/better-bash-scripting-in-15-minutes.html
  - Argbash: Argument parsing toolkit                                      https://github.com/matejak/argbash
+ - Bash Exit Traps: Towards Safer Bash Scripts                            http://redsymbol.net/articles/bash-exit-traps/
 
 For my Fish shell functions, snippets, and reading list see here:  
 https://github.com/pirate/fish-functions
