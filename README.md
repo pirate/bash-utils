@@ -8,7 +8,10 @@ A collection of my hand-crafted bash scripts and helper functions for various co
 - `lib/` is a collection of adapters to interact with 3rd party tools or scripts, e.g. cloudflare/letsencrypt/etc
 - `util/` is a collection of pure bash functions to make development in bash easier e.g. logging/configuration/error handling/etc.
 
+
 ## Reading List
+
+⭐️ *List of my favorite CLI utilities for Linux/macOS, and much more: https://docs.sweeting.me/s/system-monitoring-tools*
 
  - ShellCheck: life-changing BASH linter and testing toolkit              https://github.com/koalaman/shellcheck
  - How to do things safely in bash                                        https://github.com/anordal/shellharden/blob/master/how_to_do_things_safely_in_bash.md
@@ -32,7 +35,7 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - Ten Things I Wish I’d Known About bash                                 https://zwischenzugs.com/2018/01/06/ten-things-i-wish-id-known-about-bash
  - Testing Bash scripts with BATS                                         https://opensource.com/article/19/2/testing-bash-bats
  - Testing Bash scripts with Critic.sh                                    https://github.com/Checksum/critic.sh
- - Useful BASH and UNIX commands                                          https://cb.vu/unixtoolbox.xhtml
+ - Useful BASH and UNIX commands                                          [https://cb.vu/unixtoolbox.xhtml](https://web.archive.org/web/20210916210855/http://cb.vu/unixtoolbox.xhtml)
  - When Bash Scripts Bite :: Jane Street Tech Blogs                       https://blogs.janestreet.com/when-bash-scripts-bite/
  - Bashible: Ansible-like framework for bash-based devops                 https://github.com/mig1984/bashible
  - Auto-parse help text from comment at the top of script                 https://samizdat.dev/help-message-for-shell-scripts/
@@ -44,8 +47,96 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - Better Bash Scripting in 15 Minutes                                    http://robertmuth.blogspot.com/2012/08/better-bash-scripting-in-15-minutes.html
  - Argbash: Argument parsing toolkit                                      https://github.com/matejak/argbash
  - Bash Exit Traps: Towards Safer Bash Scripts                            http://redsymbol.net/articles/bash-exit-traps/
+ - Advanced Bash Scripting Guide by Mendel Cooper                         https://hangar118.sdf.org/p/bash-scripting-guide/
 
 For my Fish shell functions, snippets, and reading list see here:  
+
 https://github.com/pirate/fish-functions
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
+
+## Useful Helper Commands
+
+#### `timeout`
+
+timeout executes the ssh command (with args) and sends a SIGTERM if ssh doesn't return after 5 second. for more details about timeout, read this document： http://man7.org/linux/man-pages/man1/timeout.1.html
+
+```bash
+timeout 5 some-slow-command
+
+# or on mac:
+brew install coreutils
+gtimeout 5 some-slow-command
+```
+
+#### `nohup`
+
+#### `expect`
+
+#### `trap`
+
+#### `getopts` / `argbash`
+
+```bash
+# parse and handle passed CLI arguments sanely
+while getopts ":mnopq:rs" Option
+do
+  case $Option in
+    m     ) echo "Scenario #1: option -m-   [OPTIND=${OPTIND}]";;
+    n | o ) echo "Scenario #2: option -$Option-   [OPTIND=${OPTIND}]";;
+    p     ) echo "Scenario #3: option -p-   [OPTIND=${OPTIND}]";;
+    q     ) echo "Scenario #4: option -q-\
+                  with argument \"$OPTARG\"   [OPTIND=${OPTIND}]";;
+    #  Note that option 'q' must have an associated argument,
+    #+ otherwise it falls through to the default.
+    r | s ) echo "Scenario #5: option -$Option-";;
+    *     ) echo "Unimplemented option chosen.";;   # Default.
+  esac
+done
+```
+
+#### `trap`
+
+```bash
+#!/bin/bash
+scratch=$(mktemp -d -t tmp.XXXXXXXXXX)
+function finish {
+  rm -rf "$scratch"
+}
+trap finish EXIT
+```
+
+#### `pkill`
+
+```bash
+# kill any processes matching given regex
+pkill nginx
+```
+
+#### `eval`
+
+```bash
+a='$b'
+b='$c'
+c=d
+
+echo $a             # $b
+                    # First level.
+eval echo $a        # $c
+                    # Second level.
+eval eval echo $a   # d
+                    # Third level.
+```
+
+#### `exec`
+
+```bash
+# This shell builtin replaces the current process with a specified command
+# useful for when the last command in a script is a long running process you want to kick off, and you dont want it to be a child of bash
+
+exec some-daemon-that-runs-forever
+```
+
+#### `dpkg -s <pkgname>` / `dpkg --compare-versions "20.04.2" "ge" "18.04.12"`
+
+check pkg info of any installed package, and compare semver/date/incremental versions easily
