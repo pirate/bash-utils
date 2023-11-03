@@ -11,7 +11,24 @@ A collection of my hand-crafted bash scripts and helper functions for various co
 
 ## Reading List
 
-⭐️ *List of my favorite CLI utilities for Linux/macOS, and much more: https://docs.sweeting.me/s/system-monitoring-tools*
+For a list of my favorite CLI utilities for Linux/macOS, and much more, see here: 
+
+https://docs.sweeting.me/s/system-monitoring-tools*
+
+For my **Fish shell** functions, snippets, and reading list see here:  
+
+https://github.com/pirate/fish-functions
+
+### Manpages and CLI Explainer Tools
+
+- https://linux.die.net/man/
+- https://wiki.tilde.fun/admin/linux/cli/start
+- https://explainshell.com/ ([Github](https://github.com/idank/explainshell))
+- https://tldr.sh/
+- http://bropages.org/
+- https://regex101.com/
+
+### Articles, Tools, and More
 
  - ShellCheck: life-changing BASH linter and testing toolkit              https://github.com/koalaman/shellcheck
  - How to do things safely in bash                                        https://github.com/anordal/shellharden/blob/master/how_to_do_things_safely_in_bash.md
@@ -49,11 +66,10 @@ A collection of my hand-crafted bash scripts and helper functions for various co
  - Bash Exit Traps: Towards Safer Bash Scripts                            http://redsymbol.net/articles/bash-exit-traps/
  - Advanced Bash Scripting Guide by Mendel Cooper                         https://hangar118.sdf.org/p/bash-scripting-guide/
 
-For my Fish shell functions, snippets, and reading list see here:  
-
-https://github.com/pirate/fish-functions
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
+
+---
 
 ## Useful Helper Commands
 
