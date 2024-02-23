@@ -22,6 +22,13 @@ trap 'log_quit $? "${BASH_SOURCE//$PWD/.}:${LINENO} ${FUNCNAME:-}($(IFS=" "; ech
 
 SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 ROOT_PID=$$
+PARENT_PID=$PPID
+
+# get input/output redirection state
+[[ ! -t 0 ]]; IS_STDIN_TTY="${?}"
+[[ ! -t 1 ]]; IS_STDOUT_TTY="${?}"
+[[ ! -t 2 ]]; IS_STDERR_TTY="${?}"
+[[ ! "$IS_STDIN_TTY$IS_STDOUT_TTY$IS_STDERR_TTY" == "111" ]]; IS_TTY="${?}"
 
 ### General Helpers
 
