@@ -65,6 +65,7 @@ https://github.com/pirate/fish-functions
  - Argbash: Argument parsing toolkit                                      https://github.com/matejak/argbash
  - Bash Exit Traps: Towards Safer Bash Scripts                            http://redsymbol.net/articles/bash-exit-traps/
  - Advanced Bash Scripting Guide by Mendel Cooper                         https://hangar118.sdf.org/p/bash-scripting-guide/
+ - Bash Debugging Zine by Julia Evans                                     https://wizardzines.com/comics/bash-debugging/
 
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
@@ -72,6 +73,25 @@ If any of these links are down, see https://archive.sweeting.me or https://archi
 ---
 
 ## Useful Helper Commands
+
+#### Unofficial Bash Strict Mode
+
+```bash
+#!/usr/bin/env bash
+
+### Bash Environment Setup
+# http://redsymbol.net/articles/unofficial-bash-strict-mode/
+# https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+# set -o xtrace
+# set -x
+set -o errexit
+set -o errtrace
+set -o nounset
+set -o pipefail
+IFS=$'\n'
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+```
 
 #### `timeout`
 
