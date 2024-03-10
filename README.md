@@ -176,3 +176,9 @@ exec some-daemon-that-runs-forever
 #### `dpkg -s <pkgname>` / `dpkg --compare-versions "20.04.2" "ge" "18.04.12"`
 
 check pkg info of any installed package, and compare semver/date/incremental versions easily
+
+#### `pipeexec`
+
+Have total control over piping between processes, including doing crazy things like piping a processes own stdout into its stdin, launching complex directed graphs of pipes as a single process, etc.
+
+https://github.com/flonatel/pipexec
