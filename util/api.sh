@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Bash helper functions to interact with JSON REST APIs.
 
 REQUIRES_FUNCS debug fatal
 REQUIRES_CMDS curl jq
