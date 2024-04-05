@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# One-liner helper to generate SSL certificates using a range of supported providers.
+# Supports: mkcert|openssl|standalone|nginx|webroot|cloudflare|digitalocean|manual
+# Usage:
+#   sslgen --domain=example.com \
+           --out-dir=./data/certs \
+           --method=[mkcert|openssl|standalone|nginx|webroot|cloudflare|digitalocean|manual]
 
 SCRIPTNAME="$0"
 VERSION="0.0.1"
@@ -13,6 +19,8 @@ REQUIRES_FUNCS \
     config_load_all config_validate \
     repeated timed \
     dns_lookup get_public_ip
+# REQUIRES_FUNCS and other global helper funcs are defined in lib/base.sh:
+# https://github.com/pirate/bash-utils/blob/master/util/base.sh#:~:text=REQUIRES_FUNCS
 
 
 # shellcheck disable=SC2034
