@@ -10,8 +10,8 @@ source "$SCRIPTS_DIR/util/config.sh"
 source "$SCRIPTS_DIR/util/api.sh"
 source "$SCRIPTS_DIR/util/dns.sh"
 
-REQUIRES_FUNCS \
-    debug info warn error log_start \
+REQUIRES_FUNCS \                         # REQUIRES_FUNCS and other global helper funcs are defined in util/base.sh:
+    debug info warn error log_start \    # https://github.com/pirate/bash-utils/blob/master/util/base.sh#:~:text=REQUIRES_FUNCS
     config_load_all config_validate \
     merge_arrays repeated
 
@@ -19,7 +19,7 @@ REQUIRES_FUNCS \
 HELP_TEXT="
     $SCRIPTNAME v$VERSION
 
-    Helper script to update a DNS A record on Cloudflare & DigitalOcean.
+    Helper script to update a DNS A record automatically on Cloudflare & DigitalOcean.
 
 Usage:
     $SCRIPTNAME --domain=domain.example.com [--get|--set=value] [...options]
