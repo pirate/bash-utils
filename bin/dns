@@ -19,7 +19,7 @@ REQUIRES_FUNCS \
 HELP_TEXT="
     $SCRIPTNAME v$VERSION
 
-    Helper script to update a DNS record on multiple providers.
+    Helper script to update a DNS A record on Cloudflare & DigitalOcean.
 
 Usage:
     $SCRIPTNAME --domain=domain.example.com [--get|--set=value] [...options]
@@ -74,7 +74,7 @@ Examples:
 "
 
 ### Default Config
-API_KEY_PLACEHOLDER="set-this-value-in-your-config-file"
+API_KEY_PLACEHOLDER="set-this-value-in-your-config-file"   # e.g. --config=~/.config/bash-utils.env
 ALLOWED_APIS='cf,do'
 
 
