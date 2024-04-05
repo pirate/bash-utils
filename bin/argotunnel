@@ -50,7 +50,8 @@ fi
 
 mkdir -p "$SCRIPTS_DIR/data/tmp"
 if [ ! -f "$CERT_FILE" ]; then
-    log "[X] Missing certificate at '$CERT_FILE'.\nTo generate it, run:\n    cloudflared tunnel login && cp ~/.cloudflared/cert.pem '$CERT_FILE'\n    or get it from https://dash.cloudflare.com/argotunnel"
+    # or download one from https://dash.cloudflare.com/argotunnel
+    log "[X] Missing certificate at '$CERT_FILE'.\nTo generate it, run:\n    cloudflared tunnel login && cp ~/.cloudflared/cert.pem '$CERT_FILE'\n    or get it from https://dash.cloudflare.com/argotunnel
     exit 2
 fi
 
@@ -73,12 +74,31 @@ if ((WAITED!=0)); then
     fi
 fi
 
+# docker-compose.yml:
+#
+# services:
+#    nginx: ...
+#
+#    argo:
+#        # https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/install-and-setup/tunnel-guide/local/local-management/arguments/
+#        image: cloudflare/cloudflared
+#        command: tunnel --no-autoupdate --overwrite-dns --retries 15 --protocol http2 --url http://nginx:80 --hostname app.example.com --name app.example.com
+#        volumes:
+#            # download a cert.pem into this folder from https://dash.cloudflare.com/argotunnel
+#            - ./etc/cloudflared:/etc/cloudflared
+#        cpus: 2
+#        mem_limit: 512m
+#        restart: on-failure
+
 log "[*] Starting cloudflared process..."
 exec "$SCRIPTS_DIR/bin/cloudflared" \
     tunnel \
     --url "$URL" \
     --hostname "$DOMAIN" \
-    --origin-server-name "$ROOTDOMAIN" \
-    --origincert "$CERT_FILE" \
+    --name "$DOMAIN" \
+    --overwrite-dns \
+    --no-tls-verify \
+    --protocol http2 \
     --pidfile "$PID_FILE" \
-    --no-tls-verify
+    --no-autoupdate \
+    --retries 30
