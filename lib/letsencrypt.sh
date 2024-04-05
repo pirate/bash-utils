@@ -2,7 +2,8 @@
 # LetsEncyrpt Bash API
 
 REQUIRES_FUNCS info json_api get_rootdomain get_subdomain
-
+# REQUIRES_FUNCS and other global helpers are defined in base.sh:
+# https://github.com/pirate/bash-utils/blob/master/util/base.sh#:~:text=REQUIRES_FUNCS
 
 ### Global Variables
 
