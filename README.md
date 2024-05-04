@@ -84,6 +84,7 @@ If any of these links are down, see https://archive.sweeting.me or https://archi
 # https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
 # set -o xtrace
 # set -x
+# shopt -s nullglob
 set -o errexit
 set -o errtrace
 set -o nounset
