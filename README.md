@@ -13,7 +13,7 @@ A collection of my hand-crafted bash scripts and helper functions for various co
 
 For a list of my favorite CLI utilities for Linux/macOS, and much more, see here: 
 
-https://docs.sweeting.me/s/system-monitoring-tools*
+https://docs.sweeting.me/s/system-monitoring-tools ⭐️
 
 For my **Fish shell** functions, snippets, and reading list see here:  
 
