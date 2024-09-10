@@ -183,3 +183,21 @@ check pkg info of any installed package, and compare semver/date/incremental ver
 Have total control over piping between processes, including doing crazy things like piping a processes own stdout into its stdin, launching complex directed graphs of pipes as a single process, etc.
 
 https://github.com/flonatel/pipexec
+
+
+### `perl -pE`: Best simple find-and-replace regex
+
+```bash
+echo '0.0.0.0:443->443/tcp' | perl -pE 's/0.0.0.0:(\d+)->.*/$1/gm'    # 443
+```
+
+#### `sed`: Truncate strings with `...` ellipsis
+
+```bash
+# Example: Truncate if longer than 15 characters
+echo "short string"     | sed 's/\(.\{15\}\).*/\1.../'       # short string
+echo "some long string" | sed 's/\(.\{15\}\).*/\1.../'       # some long st...
+
+# Bonus: get terminal width in columns
+TERMINAL_WIDTH=$(tput cols)
+```
