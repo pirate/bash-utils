@@ -66,6 +66,7 @@ https://github.com/pirate/fish-functions
  - Bash Exit Traps: Towards Safer Bash Scripts                            http://redsymbol.net/articles/bash-exit-traps/
  - Advanced Bash Scripting Guide by Mendel Cooper                         https://hangar118.sdf.org/p/bash-scripting-guide/
  - Bash Debugging Zine by Julia Evans                                     https://wizardzines.com/comics/bash-debugging/
+ - Bash Process Backgrounding and Daemon Management                       https://mywiki.wooledge.org/ProcessManagement
  - The Art of Command Line                                                https://github.com/jlevy/the-art-of-command-line
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
