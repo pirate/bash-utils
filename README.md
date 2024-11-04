@@ -68,6 +68,7 @@ https://github.com/pirate/fish-functions
  - Bash Debugging Zine by Julia Evans                                     https://wizardzines.com/comics/bash-debugging/
  - Bash Process Backgrounding and Daemon Management                       https://mywiki.wooledge.org/ProcessManagement
  - The Art of Command Line                                                https://github.com/jlevy/the-art-of-command-line
+ - Basn $Namerefs                                                         https://rednafi.com/misc/bash_namerefs/
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
 
