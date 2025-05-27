@@ -108,6 +108,18 @@ brew install coreutils
 gtimeout 5 some-slow-command
 ```
 
+https://news.ycombinator.com/item?id=44096395 more lore around `timeout`
+
+#### `until`
+
+```bash
+until curl --silent --fail-with-body 10.0.0.1:8080/health; do
+	sleep 1
+done
+```
+
+https://heitorpb.github.io/bla/timeout/
+
 #### `nohup`
 
 #### `expect`
@@ -203,3 +215,12 @@ echo "some long string" | sed 's/\(.\{15\}\).*/\1.../'       # some long st...
 # Bonus: get terminal width in columns
 TERMINAL_WIDTH=$(tput cols)
 ```
+
+#### Use strace to catch syscall failures
+
+```bash
+strace -e trace=clone -e fault=clone:error=EAGAIN
+```
+https://medium.com/@manav503/using-strace-to-perform-fault-injection-in-system-calls-fcb859940895
+
+
