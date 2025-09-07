@@ -69,6 +69,7 @@ https://github.com/pirate/fish-functions
  - Bash Process Backgrounding and Daemon Management                       https://mywiki.wooledge.org/ProcessManagement
  - The Art of Command Line                                                https://github.com/jlevy/the-art-of-command-line
  - Basn $Namerefs                                                         https://rednafi.com/misc/bash_namerefs/
+ - Bash Here Strings `<<<`                                                https://www.gnu.org/software/bash/manual/bash.html#Here-Strings
 
 If any of these links are down, see https://archive.sweeting.me or https://archive.org for mirrors.
 
